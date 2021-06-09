@@ -77,6 +77,27 @@ class RandomPlayer(Player):
     def save_model(self, model_prefix: str = None):
         pass
 
+class HumanPlayer(Player):
+    def __init__(self, env: 'ConnectFourEnv', name='HumanPlayer'):
+        super().__init__(env, name)
+
+    def get_next_action(self, state: np.ndarray) -> int:
+        available_moves = self.env.available_moves()
+
+        if not available_moves:
+            raise ValueError('Unable to determine a valid move! Maybe invoke at the wrong time?')
+        print("Choose one of the following moves:",list(available_moves ))
+        user_input = int(input())
+
+
+        return user_input
+
+    def reset(self, episode: int = 0, side: int = 1) -> None:
+        pass
+
+    def save_model(self, model_prefix: str = None):
+        pass
+
 
 class SavedPlayer(Player):
     def __init__(self, env, name='SavedPlayer', model_prefix=None):
@@ -260,7 +281,7 @@ class ConnectFourEnv(gym.Env):
         self.__rendered_board = self._update_board_render()
         return self.board
 
-    def render(self, mode: str = 'console', close: bool = False) -> None:
+    def render(self, mode: str = 'human', close: bool = False) -> None:
         if mode == 'console':
             replacements = {
                 self.__player_color: 'A',
