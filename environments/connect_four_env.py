@@ -137,12 +137,12 @@ class ConnectFourEnv(gym.Env):
             self.__current_player *= -1
             return player1 if cp() == 1 else player2
 
-        state_hist = deque([self.__board.copy()], maxlen=4)
+        # state_hist = deque([self.__board.copy()], maxlen=4)
 
         act = player1.get_next_action(self.__board * 1)
         act_hist = deque([act], maxlen=2)
         step_result = self._step(act)
-        state_hist.append(self.__board.copy())
+        # state_hist.append(self.__board.copy())
         player = change_player()
         done = False
         while not done:
@@ -150,27 +150,27 @@ class ConnectFourEnv(gym.Env):
                 self.render()
             act_hist.append(player.get_next_action(self.__board * cp()))
             step_result = self._step(act_hist[-1])
-            state_hist.append(self.__board.copy())
+            # state_hist.append(self.__board.copy())
 
             player = change_player()
 
             reward = step_result.get_reward(cp())
             done = step_result.is_done()
-            player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
+            # player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
 
         player = change_player()
         reward = step_result.get_reward(cp())
-        player.learn(state_hist[-2] * cp(), act_hist[-1], state_hist[-1] * cp(), reward, done)
+        # player.learn(state_hist[-2] * cp(), act_hist[-1], state_hist[-1] * cp(), reward, done)
         if render:
             self.render()
 
         return step_result.res_type
 
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
-        step_result = self._step(action)
-        reward = step_result.get_reward(self.__current_player)
-        done = step_result.is_done()
-        return self.__board.copy(), reward, done, {}
+    # def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
+    #     step_result = self._step(action)
+    #     reward = step_result.get_reward(self.__current_player)
+    #     done = step_result.is_done()
+    #     return self.__board.copy(), reward, done, {}
 
     def _step(self, action: int) -> StepResult:
         result = ResultType.NONE
@@ -194,10 +194,40 @@ class ConnectFourEnv(gym.Env):
             if self.is_win_state():
                 result = ResultType.WIN1 if self.__current_player == 1 else ResultType.WIN2
         return self.StepResult(result)
+    
+
+    def _inverse_step(self, action: int) -> StepResult:
+        result = ResultType.NONE
+
+        if not self.is_valid_action(action):
+            raise Exception(
+                'Unable to determine a valid move! Maybe invoke at the wrong time?'
+            )
+
+        print(self.__board)
+        for index in list(reversed(range(self.board_shape[0]))):
+            print(self.__board[index])
+            if self.__board[index][action] == 0:
+                self.__board[index+1][action] = 0 # remove last element
+                print(self.__board)
+                break
+
+        return self.StepResult(result)
+
+
 
     @property
     def board(self):
         return self.__board.copy()
+    
+    @property
+    def current_player(self):
+        return self.__current_player
+    
+    def change_player_sign(self):
+        self.__current_player *= (-1)
+        return self.__current_player
+        
 
     def reset(self, board: Optional[np.ndarray] = None) -> np.ndarray:
         self.__current_player = 1

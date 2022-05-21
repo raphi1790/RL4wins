@@ -54,13 +54,21 @@ class Negamax(Player):
         # self.__evaluated = {}
     
     def get_next_action(self, state: np.array) -> int:
-        action = self.find_best_move()
+        current_player_sign = self.env.current_player
+        action = self.find_best_move(current_player_sign,4)
         temp_board = self.env.board
         return action
     
-    def find_best_move(self):
-        if depth == 0:
-            return 0
+    def find_best_move(self, curr_player_sign, depth):
+        opponent_sign = curr_player_sign * (-1)
+
+        # if depth == 0:
+        for i in range(4):
+            self.env._step(2)
+            print("current_player", self.env.current_player)
+            print("is_win_state", self.env.is_win_state())
+            self.env._inverse_step(2)
+            # self.env.change_player_sign()
         return 1
 
     def _undo_move():

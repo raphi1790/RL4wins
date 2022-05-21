@@ -1,4 +1,5 @@
-from environments.connect_four_env import ConnectFourEnv, HumanPlayer, Negamax, RandomPlayer
+from environments.connect_four_env import ConnectFourEnv
+from environments.players import  HumanPlayer, Negamax, RandomPlayer
 
 
 if __name__ == "__main__":
