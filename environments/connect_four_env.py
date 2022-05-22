@@ -199,17 +199,9 @@ class ConnectFourEnv(gym.Env):
     def _inverse_step(self, action: int) -> StepResult:
         result = ResultType.NONE
 
-        if not self.is_valid_action(action):
-            raise Exception(
-                'Unable to determine a valid move! Maybe invoke at the wrong time?'
-            )
-
-        print(self.__board)
         for index in list(reversed(range(self.board_shape[0]))):
-            print(self.__board[index])
             if self.__board[index][action] == 0:
                 self.__board[index+1][action] = 0 # remove last element
-                print(self.__board)
                 break
 
         return self.StepResult(result)
