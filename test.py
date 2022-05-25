@@ -1,11 +1,11 @@
 from environments.connect_four_env import ConnectFourEnv
-from environments.players import  HumanPlayer, Negamax, RandomPlayer
+from environments.players import  HumanPlayer, NegamaxPlayer, RandomPlayer
 
 
 if __name__ == "__main__":
     env=ConnectFourEnv()
     player1 = RandomPlayer(env, 'Dexter-Bot')
-    player2 = Negamax(env, 'Deedee-Bot')
+    player2 = RandomPlayer(env, 'Deedee-Bot')
     result = env.run(player1, player2, render=False)
     reward = result.value
     print(reward)
