@@ -25,7 +25,7 @@ class RandomPlayer(Player):
         random.setstate(prev_state)
 
     def get_next_action(self, state: np.ndarray) -> int:
-        available_moves = self.env.available_moves(self.env.board)
+        available_moves = self.env.available_moves()
         if not available_moves:
             raise ValueError('Unable to determine a valid move! Maybe invoke at the wrong time?')
 
@@ -46,7 +46,7 @@ class RandomPlayer(Player):
         pass
 
 
-class NegamaxPlayer(Player):
+class Negamax(Player):
     def __init__(self, env: 'ConnectFourEnv', name='NegamaxPlayer', max_depth=4):
         super().__init__(env, name)
         self._weights = [1, 8, 128, 99999]
@@ -61,32 +61,29 @@ class NegamaxPlayer(Player):
                     if x - y == z] for z in range(-3, 3)]
 
         segments = rows + columns + up + down
-        # self._splitted_segments=[segments[x][i:i+4] for x in range(len(segments)) for i in range(len(segments[x])-3)]
-        self._splitted_segments=[[(5,0),(5,1),(5,2),(5,3)],[(5,0),(4,0),(3,0),(2,0)]]
+        self._splitted_segments=[segments[x][i:i+4] for x in range(len(segments)) for i in range(len(segments[x])-3)]
         # self.__max_depth = max_depth
         # self.__evaluated = {}
     
     def get_next_action(self, state: np.array) -> int:
-        board=self.env.board
-        print(board)
+        print(self.env.board)
         current_player_sign = self.env.current_player
-        # action, score = self.find_best_move(current_player_sign,4)
+        action, score = self.find_best_move(self.env.board, current_player_sign,4)
         # print("action", action, "score", score)
-        return 1
+        return action
     
-    def find_best_move(self, current_player_sign, depth):
+    def find_best_move(self,board, current_player_sign, depth):
         opponent_player_sign = current_player_sign * (-1)
         best_score = float('-inf')
         best_move = None
 
         if depth == 0:
-            score = self._evaluate_position(self.env.board,current_player_sign,opponent_player_sign)
+            score = self._evaluate_position(board,current_player_sign,opponent_player_sign)
             # print(board)
             return None, score
         
-        available_moves = [i for i in range(self.env.board_shape[1]) if self.env.is_valid_action(i)]
-        # print(available_moves)
-        for move in available_moves[:1]:
+        available_moves=self.env.available_moves()
+        for move in available_moves:
             self.env._step(move)           
             
             if self.env.is_win_state():
@@ -96,7 +93,7 @@ class NegamaxPlayer(Player):
 
             else:
                 self.env.change_player_sign()
-                _, best_subscore = self.find_best_move(opponent_player_sign, depth -1)
+                _, best_subscore = self.find_best_move(board,opponent_player_sign, depth -1)
                 best_subscore *= -1
 
             self.env._inverse_step(move)
@@ -107,7 +104,7 @@ class NegamaxPlayer(Player):
 
         # Happens when max_depth exceeds number of possible moves
         if best_move is None:
-            best_score = self._evaluate_position(self.env.board, current_player_sign, opponent_player_sign)
+            best_score = self._evaluate_position(board, current_player_sign, opponent_player_sign)
 
 
         return best_move, best_score

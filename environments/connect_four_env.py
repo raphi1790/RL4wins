@@ -140,7 +140,7 @@ class ConnectFourEnv(gym.Env):
         # state_hist = deque([self.__board.copy()], maxlen=4)
 
         act = player1.get_next_action(self.__board * 1)
-        # act_hist = deque([act], maxlen=2)
+        act_hist = deque([act], maxlen=2)
         step_result = self._step(act)
         # state_hist.append(self.__board.copy())
         player = change_player()
@@ -148,23 +148,21 @@ class ConnectFourEnv(gym.Env):
         while not done:
             if render:
                 self.render()
-            # act_hist.append(player.get_next_action(self.__board * cp()))
-            act=player.get_next_action(self.__board * cp())
-            step_result = self._step(act)
+            act_hist.append(player.get_next_action(self.__board * cp()))
+            step_result = self._step(act_hist[-1])
             # state_hist.append(self.__board.copy())
 
             player = change_player()
 
-            # reward = step_result.get_reward(cp())
+            reward = step_result.get_reward(cp())
             done = step_result.is_done()
             # player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
 
         player = change_player()
-        # reward = step_result.get_reward(cp())
+        reward = step_result.get_reward(cp())
         # player.learn(state_hist[-2] * cp(), act_hist[-1], state_hist[-1] * cp(), reward, done)
         if render:
             self.render()
-        print(self.__board)
 
         return step_result.res_type
 
@@ -177,7 +175,7 @@ class ConnectFourEnv(gym.Env):
     def _step(self, action: int) -> StepResult:
         result = ResultType.NONE
 
-        if not self.is_valid_action(action, self.__board):
+        if not self.is_valid_action(action):
             raise Exception(
                 'Unable to determine a valid move! Maybe invoke at the wrong time?'
             )
@@ -193,7 +191,7 @@ class ConnectFourEnv(gym.Env):
             result = ResultType.DRAW
         else:
             # Check win condition
-            if self.is_win_state(self.__board):
+            if self.is_win_state():
                 result = ResultType.WIN1 if self.__current_player == 1 else ResultType.WIN2
         return self.StepResult(result)
     
@@ -207,6 +205,8 @@ class ConnectFourEnv(gym.Env):
                 break
 
         return self.StepResult(result)
+
+
 
     @property
     def board(self):
@@ -272,45 +272,43 @@ class ConnectFourEnv(gym.Env):
     def close(self) -> None:
         pygame.quit()
 
-    def is_valid_action(self, action: int, board:np.ndarray) -> bool:
-        
-        return  board[0][action] == 0
+    def is_valid_action(self, action: int) -> bool:
+        return self.__board[0][action] == 0
 
     def _update_board_render(self) -> np.ndarray:
         return render_board(self.__board,
                             image_width=self.__window_width,
                             image_height=self.__window_height)
 
-    def is_win_state(self, board) -> bool:
+    def is_win_state(self) -> bool:
         # Test rows
-        board_shape = board.shape
-        for i in range(board_shape[0]):
-            for j in range(board_shape[1] - 3):
-                value = sum(board[i][j:j + 4])
+        for i in range(self.board_shape[0]):
+            for j in range(self.board_shape[1] - 3):
+                value = sum(self.__board[i][j:j + 4])
                 if abs(value) == 4:
                     return True
 
         # Test columns on transpose array
-        reversed_board = [list(i) for i in zip(*board)]
-        for i in range(board_shape[1]):
-            for j in range(board_shape[0] - 3):
+        reversed_board = [list(i) for i in zip(*self.__board)]
+        for i in range(self.board_shape[1]):
+            for j in range(self.board_shape[0] - 3):
                 value = sum(reversed_board[i][j:j + 4])
                 if abs(value) == 4:
                     return True
 
         # Test diagonal
-        for i in range(board_shape[0] - 3):
-            for j in range(board_shape[1] - 3):
+        for i in range(self.board_shape[0] - 3):
+            for j in range(self.board_shape[1] - 3):
                 value = 0
                 for k in range(4):
-                    value += board[i + k][j + k]
+                    value += self.__board[i + k][j + k]
                     if abs(value) == 4:
                         return True
 
-        reversed_board = np.fliplr(board)
+        reversed_board = np.fliplr(self.__board)
         # Test reverse diagonal
-        for i in range(board_shape[0] - 3):
-            for j in range(board_shape[1] - 3):
+        for i in range(self.board_shape[0] - 3):
+            for j in range(self.board_shape[1] - 3):
                 value = 0
                 for k in range(4):
                     value += reversed_board[i + k][j + k]
@@ -319,6 +317,6 @@ class ConnectFourEnv(gym.Env):
 
         return False
 
-    def available_moves(self, board) -> frozenset:
+    def available_moves(self) -> frozenset:
         return frozenset(
-            (i for i in range(board.shape[1]) if self.is_valid_action(i, board)))
+            (i for i in range(self.board_shape[1]) if self.is_valid_action(i)))
