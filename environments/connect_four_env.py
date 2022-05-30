@@ -140,7 +140,7 @@ class ConnectFourEnv(gym.Env):
         # state_hist = deque([self.__board.copy()], maxlen=4)
 
         act = player1.get_next_action(self.__board * 1)
-        act_hist = deque([act], maxlen=2)
+        # act_hist = deque([act], maxlen=2)
         step_result = self._step(act)
         # state_hist.append(self.__board.copy())
         player = change_player()
@@ -148,14 +148,17 @@ class ConnectFourEnv(gym.Env):
         while not done:
             if render:
                 self.render()
-            act_hist.append(player.get_next_action(self.__board * cp()))
-            step_result = self._step(act_hist[-1])
+            # act_hist.append(player.get_next_action(self.__board * cp()))
+            print("current player", self.__current_player)
+            act=player.get_next_action(self.__board * cp())
+            step_result = self._step(act)
             # state_hist.append(self.__board.copy())
 
             player = change_player()
 
             reward = step_result.get_reward(cp())
             done = step_result.is_done()
+            print("board", self.board)
             # player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
 
         player = change_player()
@@ -188,6 +191,7 @@ class ConnectFourEnv(gym.Env):
 
         # Check if board is completely filled
         if np.count_nonzero(self.__board[0]) == self.board_shape[1]:
+        # if np.count_nonzero(self.__board[0]) == 1:
             result = ResultType.DRAW
         else:
             # Check win condition
@@ -199,9 +203,9 @@ class ConnectFourEnv(gym.Env):
     def _inverse_step(self, action: int) -> StepResult:
         result = ResultType.NONE
 
-        for index in list(reversed(range(self.board_shape[0]))):
-            if self.__board[index][action] == 0:
-                self.__board[index+1][action] = 0 # remove last element
+        for index in list(range(self.board_shape[0])):
+            if self.__board[index][action] != 0:
+                self.__board[index][action] = 0 # remove last element
                 break
 
         return self.StepResult(result)

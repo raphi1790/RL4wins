@@ -11,6 +11,7 @@ pyvirtualdisplay = "==2.1"
 tensorflow = "==2.4.1"
 tf-agents = "==0.7.1"
 pygame = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"

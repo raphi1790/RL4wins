@@ -46,7 +46,7 @@ class RandomPlayer(Player):
         pass
 
 
-class Negamax(Player):
+class NegamaxPlayer(Player):
     def __init__(self, env: 'ConnectFourEnv', name='NegamaxPlayer', max_depth=4):
         super().__init__(env, name)
         self._weights = [1, 8, 128, 99999]
@@ -66,37 +66,44 @@ class Negamax(Player):
         # self.__evaluated = {}
     
     def get_next_action(self, state: np.array) -> int:
-        print(self.env.board)
+        # print("input board", self.env.board)
         current_player_sign = self.env.current_player
-        action, score = self.find_best_move(self.env.board, current_player_sign,4)
+        action, score = self.find_best_move( current_player_sign,4)
         # print("action", action, "score", score)
         return action
     
-    def find_best_move(self,board, current_player_sign, depth):
+    def find_best_move(self, current_player_sign, depth):
         opponent_player_sign = current_player_sign * (-1)
         best_score = float('-inf')
         best_move = None
 
+        # print("step_result", self.env.StepResult.res_type)
+        
         if depth == 0:
-            score = self._evaluate_position(board,current_player_sign,opponent_player_sign)
-            # print(board)
+            score = self._evaluate_position(current_player_sign,opponent_player_sign)
+            # print("temporary_board", )
             return None, score
         
-        available_moves=self.env.available_moves()
+        # available_moves=self.env.available_moves()
+        available_moves = [i for i in range(self.env.board_shape[1]) if self.env.is_valid_action(i)]
+        # print("available_moves",available_moves)
         for move in available_moves:
-            self.env._step(move)           
+            step_result = self.env._step(move)     
+
+            self.env.change_player_sign()
+            _, best_subscore = self.find_best_move(opponent_player_sign, depth -1)
+            best_subscore *= -1
             
-            if self.env.is_win_state():
-                best_subscore = current_player_sign*9999999999
-            elif self.env.StepResult.res_type == 'DRAW':
-                best_subscore = 0
+            # if self.env.is_win_state():
+            #     best_subscore = current_player_sign*9999999999
+            # elif self.env.StepResult.res_type == 'DRAW':
+            #     best_subscore = 0
 
-            else:
-                self.env.change_player_sign()
-                _, best_subscore = self.find_best_move(board,opponent_player_sign, depth -1)
-                best_subscore *= -1
-
+            # else:
+               
             self.env._inverse_step(move)
+
+            
 
             if best_subscore > best_score:
                 best_score = best_subscore
@@ -104,15 +111,16 @@ class Negamax(Player):
 
         # Happens when max_depth exceeds number of possible moves
         if best_move is None:
-            best_score = self._evaluate_position(board, current_player_sign, opponent_player_sign)
+            best_score = self._evaluate_position(current_player_sign, opponent_player_sign)
 
-
+        # print("end_board", self.env.board)
         return best_move, best_score
         
     
-    def _evaluate_position(self, board, curr, opp):
+    def _evaluate_position(self, curr, opp):
         """Counts and weighs longest connected checker chains, which can lead to win"""
-
+        board = self.env.board.copy()
+        
         curr_score = 0
         opp_score = 0
 
