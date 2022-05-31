@@ -69,6 +69,9 @@ class NegamaxPlayer(Player):
         # print("input board", self.env.board)
         current_player_sign = self.env.current_player
         action, score = self.find_best_move( current_player_sign,4)
+        print(current_player_sign,self.env.current_player )
+        if current_player_sign != self.env.current_player:
+            self.env.change_player_sign()
         # print("action", action, "score", score)
         return action
     
@@ -88,18 +91,17 @@ class NegamaxPlayer(Player):
         available_moves = [i for i in range(self.env.board_shape[1]) if self.env.is_valid_action(i)]
         # print("available_moves",available_moves)
         for move in available_moves:
-            step_result = self.env._step(move)     
-
-            self.env.change_player_sign()
-            _, best_subscore = self.find_best_move(opponent_player_sign, depth -1)
-            best_subscore *= -1
+            current_step_result = self.env._step(move)       
             
-            # if self.env.is_win_state():
-            #     best_subscore = current_player_sign*9999999999
-            # elif self.env.StepResult.res_type == 'DRAW':
-            #     best_subscore = 0
+            if self.env.is_win_state():
+                best_subscore =current_player_sign* 9999999999
+            elif current_step_result.res_type == ResultType.DRAW:
+                best_subscore = 0
+            else:
+                self.env.change_player_sign()
+                _, best_subscore = self.find_best_move(opponent_player_sign, depth -1)
 
-            # else:
+                best_subscore *= -1
                
             self.env._inverse_step(move)
 

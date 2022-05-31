@@ -156,7 +156,7 @@ class ConnectFourEnv(gym.Env):
 
             player = change_player()
 
-            reward = step_result.get_reward(cp())
+            # reward = step_result.get_reward(cp())
             done = step_result.is_done()
             print("board", self.board)
             # player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
