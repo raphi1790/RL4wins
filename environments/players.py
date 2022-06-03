@@ -61,20 +61,16 @@ class NegamaxPlayer(Player):
                     if x - y == z] for z in range(-3, 3)]
 
         segments = rows + columns + up + down
+        # segments = rows
         self._splitted_segments=[segments[x][i:i+4] for x in range(len(segments)) for i in range(len(segments[x])-3)]
         self.__max_depth = max_depth
         # self.__evaluated = {}
     
     def get_next_action(self, state: np.array) -> int:
-        # print("input board", self.env.board)
         current_player_sign = self.env.current_player
-        sequence = []
         action, best_score, evaluation_board = self.find_best_move( current_player_sign,4)
-        print("evaluation_board", evaluation_board)
-        print("best_score", best_score)
         if current_player_sign != self.env.current_player:
             self.env.change_player_sign()
-        # print("action", action, "score", score)
         return action
     
     def find_best_move(self, current_player_sign, depth):
@@ -84,31 +80,32 @@ class NegamaxPlayer(Player):
         best_move = None
 
         # print("step_result", self.env.StepResult.res_type)
-        
-        if depth == 0:
-            score = self._evaluate_position(current_player_sign,opponent_player_sign)
+        if depth == 0 or self.env.is_done_state():
+            if self.env.is_win_state():
+                score = self._evaluate_position(current_player_sign,opponent_player_sign)
+            elif self.env.is_draw_state():
+                score = 0
+            else:
+                score = self._evaluate_position(current_player_sign,opponent_player_sign)
             evaluation_board = self.env.board
+            
+            # print(evaluation_board)
             return None, score, evaluation_board
         
         # available_moves=self.env.available_moves()
         available_moves = [i for i in range(self.env.board_shape[1]) if self.env.is_valid_action(i)]
         # print("available_moves",available_moves)
         for move in available_moves:
-            current_step_result = self.env._step(move)               
+            _ = self.env._step(move)               
+ 
+            self.env.change_player_sign()
+            _, best_subscore, evaluation_board = self.find_best_move(opponent_player_sign, depth -1)
 
-            if self.env.is_win_state():
-                best_subscore =current_player_sign* 9999999999
-            elif current_step_result.res_type == ResultType.DRAW:
-                best_subscore = 0
-            else:
-                self.env.change_player_sign()
-                _, best_subscore, evaluation_board = self.find_best_move(opponent_player_sign, depth -1)
+            best_subscore *= -1
 
-                best_subscore *= -1
-               
             self.env._inverse_step(move)
+            self.env.change_player_sign()
 
-            
 
             if best_subscore > best_score:
                 best_score = best_subscore

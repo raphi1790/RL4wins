@@ -149,7 +149,8 @@ class ConnectFourEnv(gym.Env):
             if render:
                 self.render()
             # act_hist.append(player.get_next_action(self.__board * cp()))
-            print("current player", self.__current_player)
+            # print("board", self.board)
+            # print("current player", self.__current_player)
             act=player.get_next_action(self.__board * cp())
             step_result = self._step(act)
             # state_hist.append(self.__board.copy())
@@ -158,7 +159,6 @@ class ConnectFourEnv(gym.Env):
 
             # reward = step_result.get_reward(cp())
             done = step_result.is_done()
-            print("board", self.board)
             # player.learn(state=state_hist[-3] * cp(), action=act_hist[-2], state_next=state_hist[-1] * cp(), reward=reward, done=done)
 
         player = change_player()
@@ -167,7 +167,7 @@ class ConnectFourEnv(gym.Env):
         if render:
             self.render()
 
-        return step_result.res_type
+        return step_result.res_type, self.board
 
     # def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
     #     step_result = self._step(action)
@@ -319,6 +319,21 @@ class ConnectFourEnv(gym.Env):
                     if abs(value) == 4:
                         return True
 
+        return False
+    
+    def is_done_state(self) -> bool:
+        game_filled =  np.count_nonzero(self.__board[0]) == self.board_shape[1] 
+        winning_state = self.is_win_state()
+        if game_filled or winning_state :
+            return True
+        return False
+
+    
+    def is_draw_state(self) -> bool:
+        game_filled =  np.count_nonzero(self.__board[0]) == self.board_shape[1] 
+        winning_state = self.is_win_state()
+        if game_filled and not winning_state:
+            return True
         return False
 
     def available_moves(self) -> frozenset:
