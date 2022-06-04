@@ -3,7 +3,7 @@ from environments.connect_four_env import ConnectFourEnv
 from environments.players import  HumanPlayer, NegamaxPlayer, RandomPlayer
 from random import random
 
-if __name__ == "__main__":
+def run_multiple_experiments():
     random_wins = 0
     negamax_wins=0
     num_experiments=50
@@ -29,3 +29,15 @@ if __name__ == "__main__":
         print("num_experiments:", num_experiments, "random_wins:", random_wins,"negamax_wins:", negamax_wins )
 
     print("num_experiments:", num_experiments, "random_wins:", random_wins,"negamax_wins:", negamax_wins )
+
+def run_single_experiment():
+    env=ConnectFourEnv()
+    player1 = NegamaxPlayer(env, 'Deedee-Bot')
+    player2 = HumanPlayer(env, 'Dexter-Bot' )
+    result, board = env.run(player1, player2, render=True)
+    reward = result.value
+    print(reward)
+    print(board)
+
+if __name__ == "__main__":
+    run_single_experiment()
